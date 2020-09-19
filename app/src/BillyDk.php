@@ -79,12 +79,23 @@ class BillyDk
         return $this->api_token;
     }
 
-    public function update_product(ProductInterface $Product): void
+    /**
+     * Used for both updategin existing products and creating new ones
+     * @param ProductInterface $Product
+     */
+    public function update_product(ProductInterface $Product): object
+    {
+        $method = $Product->get_billy_id() ? 'PUT' : 'POST';
+        $ret = $this->request($method, '/products', ['product' => $Product->get_billy_product_formatted_array() ] );
+        return $ret;
+    }
+
+    public function delete_product(ProductInterface $Product): void
     {
 
     }
 
-    public function delete_product(ProductInterface $Product): void
+    public function get_products(): array
     {
 
     }
@@ -136,7 +147,7 @@ class BillyDk
         if (strrpos($path, '/')) { // 0 is allowed (the leading /) so no !== FALSE here...
             throw new \InvalidArgumentException(sprintf('The provided path %1$s contains a / besides the leading one.', $path));
         }
-        if (preg_match('/(\/[a-z0-9]*)/i', $path, $matches)) {
+        if (preg_match('/(\/[a-z0-9]+)/i', $path, $matches)) {
             $base_path = $matches[0];
             if (!in_array($base_path, self::VALID_PATHS)) {
                 $message = sprintf(
@@ -148,7 +159,7 @@ class BillyDk
                 throw new \InvalidArgumentException($message);
             }
         } else {
-            throw new \InvalidArgumentException(sprintf('The provided path %1$s does not appear to be valid.'));
+            throw new \InvalidArgumentException(sprintf('The provided path %1$s does not appear to be valid.', $path));
         }
     }
 
@@ -159,7 +170,7 @@ class BillyDk
      * @return object
      * @throws BillyDkException
      */
-    public function request(string $method, string $path, string $body = null): object
+    public function request(string $method, string $path, ?array $body = null): object
     {
         self::validate_api_method($method);
         self::validate_api_path($path);
@@ -186,11 +197,12 @@ class BillyDk
 
         if ($http_code >= 400) {
             $message = sprintf(
-                '%1$s: request %2$s : %2$s failed with status %4$s.',
+                '%1$s: request %2$s : %2$s failed with HTTP code %4$s. Error: %5$s',
                 __CLASS__,
                 $method,
-                $url,
-                $status,
+                $path,
+                $http_code,
+                $body->errorMessage
             );
             throw new BillyDkException($message);
         }

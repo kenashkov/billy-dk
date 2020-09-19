@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Kenashkov\BillyDk\Traits;
 
-use Kenashkov\BillyDk\ProductInterface;
+use Kenashkov\BillyDk\Interfaces\ProductInterface;
 
 /**
  * Trait ProductTrait
