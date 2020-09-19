@@ -10,6 +10,8 @@ use Kenashkov\BillyDk\Traits\ProductTrait;
  * Interface ProductInterface
  * @package Kenashkov\BillyDk
  *
+ * Represents a product that can be added to Billy.dk
+ *
  * @example data
  * {
  * "id": "McuTyKwkQDq86ICyGT4NXA",
@@ -28,26 +30,26 @@ use Kenashkov\BillyDk\Traits\ProductTrait;
  * },
  *
  * An Interface and a helper Trait (@see ProductTrait) is provided instead of an Abstract Class so that the implementing
- * class can be from another hierarchy (and not forced to extend the abstract class).
+ * class can be from another hierarchy (and not forced to extend an abstract class from this hierarchy).
  *
- * Individual methods for each property as proved instead of a single method retreiving all the properties for a more
+ * Individual methods for each property as provided instead of a single method retreiving all the properties for a more
  * formal validation and descriptive purpose.
  */
 interface ProductInterface
 {
 
     /**
-     * A mapping between the data returned by the methods and the names of the properties in the Billy.dk API
+     * A mapping between methods (returning the data) and the names of the properties in the Billy.dk API
      */
     public const PROPERTY_METHOD_MAP = [
-        'get_organization'              => 'organizationId',
-        'get_name'                      => 'name',
-        'get_description'               => 'description',
-        'get_account'                   => 'accountId',
-        'get_product_number'            => 'productNo',
-        'get_suppliers_product_number'  => 'suppliersProductNo',
-        'get_sales_tax_ruleset'         => 'salesTaxRulesetId',
-        'get_is_archived'               => 'isArchived',
+        'get_billy_organization'              => 'organizationId',
+        'get_billy_name'                      => 'name',
+        'get_billy_description'               => 'description',
+        'get_billy_account'                   => 'accountId',
+        'get_billy_product_number'            => 'productNo',
+        'get_billy_suppliers_product_number'  => 'suppliersProductNo',
+        'get_billy_sales_tax_ruleset'         => 'salesTaxRulesetId',
+        'get_billy_is_archived'               => 'isArchived',
     ];
 
     /**
