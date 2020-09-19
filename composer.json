@@ -1,0 +1,26 @@
+{
+    "name": "kenashkov/billy-dk",
+    "type": "library",
+    "description": "Billy.dk sdk",
+    "keywords": ["billy.dk","sdk"],
+    "homepage": "https://github.com/kenashkov/billy-dk",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vesko Kenashkov",
+            "email": "kenashkov@azonmedia.com",
+            "homepage": "http://azonmedia.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.0",
+        "azonmedia/components": "dev-master",
+        "composer/composer": "^1.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kenashkov\\BillyDk\\": "app/src/"
+        }
+    }
+}
