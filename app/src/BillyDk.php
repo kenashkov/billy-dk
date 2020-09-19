@@ -82,8 +82,9 @@ class BillyDk
     /**
      * Used for both updategin existing products and creating new ones
      * @param ProductInterface $Product
+     * @return \stdClass Parsed json response
      */
-    public function update_product(ProductInterface $Product): object
+    public function update_product(ProductInterface $Product): \stdClass
     {
         $product_billy_id = $Product->get_billy_id();
         $method = $product_billy_id ? 'PUT' : 'POST';
@@ -92,9 +93,19 @@ class BillyDk
         return $ret;
     }
 
-    public function delete_product(ProductInterface $Product): void
+    /**
+     * Delete a product
+     * @param ProductInterface $Product
+     * @return \stdClass Parsed json response
+     * @throws BillyDkException
+     */
+    public function delete_product(ProductInterface $Product): \stdClass
     {
-
+        $product_billy_id = $Product->get_billy_id();
+        $method = 'DELETE';
+        $path = '/products/'.$product_billy_id;
+        $ret = $this->request($method, $path );
+        return $ret;
     }
 
     public function get_products(): array
