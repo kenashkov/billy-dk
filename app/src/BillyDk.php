@@ -85,8 +85,10 @@ class BillyDk
      */
     public function update_product(ProductInterface $Product): object
     {
-        $method = $Product->get_billy_id() ? 'PUT' : 'POST';
-        $ret = $this->request($method, '/products', ['product' => $Product->get_billy_product_formatted_array() ] );
+        $product_billy_id = $Product->get_billy_id();
+        $method = $product_billy_id ? 'PUT' : 'POST';
+        $path = $product_billy_id ? '/products/'.$product_billy_id : '/products';
+        $ret = $this->request($method, $path, ['product' => $Product->get_billy_product_formatted_array() ] );
         return $ret;
     }
 
@@ -144,9 +146,11 @@ class BillyDk
         //if (preg_match('/\(/[a-z0-9\-_]*)/i', $path, $matches)) {
         //the regex below allows for paths like /some/path/to
         //as none of the paths of the API have sub paths having / in the path besides the leading one is dissalowed
-        if (strrpos($path, '/')) { // 0 is allowed (the leading /) so no !== FALSE here...
-            throw new \InvalidArgumentException(sprintf('The provided path %1$s contains a / besides the leading one.', $path));
-        }
+        //for PUT & DELETE there is another /
+//        if (strrpos($path, '/')) { // 0 is allowed (the leading /) so no !== FALSE here...
+//            throw new \InvalidArgumentException(sprintf('The provided path %1$s contains a / besides the leading one.', $path));
+//        }
+        //TODO - instead a validation for ID afterthe second / can be added (based on the ID length)
         if (preg_match('/(\/[a-z0-9]+)/i', $path, $matches)) {
             $base_path = $matches[0];
             if (!in_array($base_path, self::VALID_PATHS)) {
@@ -174,6 +178,7 @@ class BillyDk
     {
         self::validate_api_method($method);
         self::validate_api_path($path);
+        //TODO a validation for single / in the path can be added for GET method
 
         $curl = curl_init(self::API_URL . $path);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);

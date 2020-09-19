@@ -42,14 +42,15 @@ interface ProductInterface
      * A mapping between methods (returning the data) and the names of the properties in the Billy.dk API
      */
     public const PROPERTY_METHOD_MAP = [
-        'get_billy_organization'              => 'organizationId',
-        'get_billy_name'                      => 'name',
-        'get_billy_description'               => 'description',
-        'get_billy_account'                   => 'accountId',
-        'get_billy_product_number'            => 'productNo',
-        'get_billy_suppliers_product_number'  => 'suppliersProductNo',
-        'get_billy_sales_tax_ruleset'         => 'salesTaxRulesetId',
-        'get_billy_is_archived'               => 'isArchived',
+        'get_billy_id'                          => 'id',
+        'get_billy_organization'                => 'organizationId',
+        'get_billy_name'                        => 'name',
+        'get_billy_description'                 => 'description',
+        'get_billy_account'                     => 'accountId',
+        'get_billy_product_number'              => 'productNo',
+        'get_billy_suppliers_product_number'    => 'suppliersProductNo',
+        'get_billy_sales_tax_ruleset'           => 'salesTaxRulesetId',
+        'get_billy_is_archived'                 => 'isArchived',
     ];
 
     /**
