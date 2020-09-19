@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kenashkov\BillyDk;
+namespace Kenashkov\BillyDk\Interfaces;
 
 use Kenashkov\BillyDk\Traits\ProductTrait;
 
@@ -50,25 +50,31 @@ interface ProductInterface
         'get_is_archived'               => 'isArchived',
     ];
 
+    /**
+     * There is a billy_ prefix to the methods as otherwise they may be too generic (for example get_id())
+     * and interfere with another class hierarchy when the interface is implemented
+     * @return string
+     */
+    public function get_billy_id(): string;
 
     /**
      * @return string
      */
-    public function get_organization(): string;
+    public function get_billy_organization(): string;
 
-    public function get_name(): string;
+    public function get_billy_name(): string;
 
-    public function get_description(): string;
+    public function get_billy_description(): string;
 
-    public function get_account(): string;
+    public function get_billy_account(): string;
 
-    public function get_product_number(): string;
+    public function get_billy_product_number(): string;
 
-    public function get_suppliers_product_number(): string;
+    public function get_billy_suppliers_product_number(): string;
 
-    public function get_sales_tax_ruleset(): string;
+    public function get_billy_sales_tax_ruleset(): string;
 
-    public function get_is_archived(): bool;
+    public function get_billy_is_archived(): bool;
 
     //public function get_prices(): array;
 
@@ -77,6 +83,6 @@ interface ProductInterface
      * @see self::PROPERTY_METHOD_MAP
      * @return array
      */
-    public function get_formatted_array(): array;
+    public function get_billy_product_formatted_array(): array;
 
 }

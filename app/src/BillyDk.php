@@ -8,16 +8,29 @@ class BillyDk
 {
     private string $api_token;
 
-    public function __construct(string $api_token) {
+    public const API_URL = 'https://api.billysbilling.com/v2';
+
+    protected string $api_url;
+
+    /**
+     * BillyDk constructor.
+     * @param string $api_token
+     * @param string $api_url Allows the default API url to be overriden (for example if there is staging server)
+     */
+    public function __construct(string $api_token, string $api_url = self::API_URL) {
         $this->api_token = $api_token;
+        $this->api_url = $api_url;
     }
 
-    public function update_product()
+    public function update_product(ProductInterface $Product): void
+    {
 
-    public function request($method, $url, $body = null): object
+    }
+
+    public function request(string $method, string $url, string $body = null): object
     {
 //        try {
-            $curl = curl_init("https://api.billysbilling.com/v2" . $url);
+            $curl = curl_init(self::API_URL . $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
 
@@ -39,7 +52,14 @@ class BillyDk
 
             if ($status >= 400) {
                 //throw new \Exception("$method: $url failed with $status - $res");
-                throw new \RuntimeException(sprintf('%1$s: request %2$s : %2$s failed with status %4$s.', __CLASS__, ));
+                $message = sprintf(
+                    '%1$s: request %2$s : %2$s failed with status %4$s.',
+                    __CLASS__,
+                    $method,
+                    $url,
+                    $status,
+                );
+                throw new \RuntimeException($message);
             }
 
             return $body;
