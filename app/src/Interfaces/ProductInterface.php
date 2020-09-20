@@ -43,7 +43,7 @@ interface ProductInterface extends \Kenashkov\ErpApi\Interfaces\ProductInterface
     /**
      * A mapping between the ErpInterface methods (returning the data) and the names of the properties in the Billy.dk API
      */
-    public const PROPERTY_METHOD_MAP = [
+    public const ERP_METHOD_PROPERTY_MAP = [
         'get_erp_id'                          => 'id',
         'get_erp_organization'                => 'organizationId',
         'get_erp_name'                        => 'name',

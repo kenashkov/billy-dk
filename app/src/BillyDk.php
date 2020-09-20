@@ -134,7 +134,7 @@ class BillyDk implements ErpInterface
         }
 
         $Response = $this->request('GET', "/products?page={$page}&pageSize={$page_size}");
-print_r($Response);
+
         $ret = [];
         //optimization for Swoole - this will persist between the requests
         static $params = [];

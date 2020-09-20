@@ -33,7 +33,7 @@ trait ProductTrait
             throw new \RuntimeException($message);
         }
         $ret = [];
-        foreach (self::PROPERTY_METHOD_MAP as $method => $property) {
+        foreach (self::ERP_METHOD_PROPERTY_MAP as $method => $property) {
             $ret[$property] = $this->{$method}();
         }
         return $ret;
