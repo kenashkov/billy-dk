@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Kenashkov\BillyDk;
 
 use Kenashkov\BillyDk\Exceptions\BillyDkException;
+use Kenashkov\BillyDk\Exceptions\BillyDkNotFoundException;
+use Kenashkov\ErpApi\Interfaces\ErpExceptionInterface;
+use Kenashkov\ErpApi\Interfaces\ErpNotFoundExceptionInterface;
 use Kenashkov\ErpApi\Interfaces\ErpInterface;
 use Kenashkov\ErpApi\Interfaces\ProductInterface;
 
@@ -75,27 +78,68 @@ class BillyDk implements ErpInterface
         $this->api_url = $api_url;
     }
 
+    /**
+     * Get the API url in use (the one provided to the constructor)
+     * @return string
+     */
     public function get_api_url(): string
     {
         return $this->api_url;
     }
 
+    /**
+     * Get the API token in use (the one provided to the constructor)
+     * @return string
+     */
     public function get_api_token(): string
     {
         return $this->api_token;
     }
 
+
     /**
-     * Used for both updategin existing products and creating new ones
+     * Returns a product from the ERP based on ERP compatible product from the local app
      * @param ProductInterface $Product
-     * @param stdClass The complete response if needed.
+     * @param \stdClass|null $Response The complete response (can be used for debug)
+     * @return ProductInterface
+     * @throws \ReflectionException
+     */
+    public function get_product(ProductInterface $Product, ?\stdClass &$Response = NULL): ProductInterface
+    {
+        $product_erp_id = $Product->get_erp_id();
+        return $this->get_product_by_id($product_erp_id, $Response);
+    }
+
+    /**
+     * @param string $product_erp_id
+     * @param \stdClass|null $Response The complete response (can be used for debug)
+     * @return ProductInterface
+     * @throws \ReflectionException
+     */
+    public function get_product_by_id(string $product_erp_id, ?\stdClass &$Response = NULL): ProductInterface
+    {
+        if (!$product_erp_id) {
+            throw new \InvalidArgumentException(sprintf('No product_erp_id provided.'));
+        }
+        $Response = $this->request('GET', '/products/'. $product_erp_id);
+        if (isset($Response->errorCode) && $Response->errorCode === 'RECORD_NOT_FOUND') {
+            throw new BillyDkNotFoundException($Response->errorMessage);
+        }
+        return self::get_product_from_object($Response->product);
+    }
+
+    /**
+     * Used for both updategin existing products and creating new ones.
+     * @param ProductInterface $Product
+     * @param \stdClass|null $Response The complete response (can be used for debug)
      * @return string The ERP ID ofthe created/updated object (this is needed for the newly created records)
      */
     public function update_product(ProductInterface $Product, ?\stdClass &$Response = NULL): string
     {
-        $product_billy_id = $Product->get_erp_id();
-        $method = $product_billy_id ? 'PUT' : 'POST';
-        $path = $product_billy_id ? '/products/'.$product_billy_id : '/products';
+        $product_erp_id = $Product->get_erp_id();
+        $method = $product_erp_id ? 'PUT' : 'POST';
+        $path = $product_erp_id ? '/products/'.$product_erp_id : '/products';
+
         $Response = $this->request($method, $path, ['product' => $Product->get_erp_product_formatted_array() ] );
         $ret = $Response->products[0]->id;
         return $ret;
@@ -104,7 +148,7 @@ class BillyDk implements ErpInterface
     /**
      * Delete a product
      * @param ProductInterface $Product
-     * @return \stdClass Parsed json response
+     * @param \stdClass|null $Response The complete response (can be used for debug)
      * @throws BillyDkException
      */
     public function delete_product(ProductInterface $Product, ?\stdClass &$Response = NULL): void
@@ -116,6 +160,7 @@ class BillyDk implements ErpInterface
     }
 
     /**
+     *
      * @param int $page
      * @param int $page_size
      * @return ProductInterface[] (in fact BillyDk\ProductInterface[] is returned which is a covariant)
@@ -136,29 +181,8 @@ class BillyDk implements ErpInterface
         $Response = $this->request('GET', "/products?page={$page}&pageSize={$page_size}");
 
         $ret = [];
-        //optimization for Swoole - this will persist between the requests
-        static $params = [];
-        if (!$params) {
-            $params = (new \ReflectionMethod(Product::class, '__construct'))->getParameters();
-        }
         foreach ($Response->products as $Product) {
-//            $ret[] = new Product(
-//                $Product->id,
-//                $Product->organizationId,
-//                $Product->name,
-//                $Product->description,
-//                $Product->accountId,
-//                $Product->productNo,
-//                $Product->suppliersProductNo,
-//                $Product->salesTaxRulesetId,
-//                $Product->isArchived,
-//            );
-            //a more flexible way
-            $constr_args = [];
-            foreach ($params as $RParam ) {
-                $constr_args[] = $Product->{$RParam->getName()};
-            }
-            $ret[] = new Product(...$constr_args);
+            $ret[] = self::get_product_from_object($Product);
         }
         return $ret;
     }
@@ -181,6 +205,39 @@ class BillyDk implements ErpInterface
             );
             throw new \InvalidArgumentException($message);
         }
+    }
+
+
+    /**
+     * A helper method for converting an object from the decoded json response to ProductInterface
+     * @param \stdClass $Object
+     * @return ProductInterface
+     * @throws \ReflectionException
+     */
+    protected static function get_product_from_object(\stdClass $Object): ProductInterface
+    {
+        //optimization for Swoole - this will persist between the requests
+        static $params = [];
+        if (!$params) {
+            $params = (new \ReflectionMethod(Product::class, '__construct'))->getParameters();
+        }
+//            $ret[] = new Product(
+//                $Product->id,
+//                $Product->organizationId,
+//                $Product->name,
+//                $Product->description,
+//                $Product->accountId,
+//                $Product->productNo,
+//                $Product->suppliersProductNo,
+//                $Product->salesTaxRulesetId,
+//                $Product->isArchived,
+//            );
+        //a more flexible way
+        $constr_args = [];
+        foreach ($params as $RParam ) {
+            $constr_args[] = $Object->{$RParam->getName()};
+        }
+        return new Product(...$constr_args);
     }
 
     /**
@@ -229,19 +286,22 @@ class BillyDk implements ErpInterface
     }
 
     /**
+     * Executes a request against the API.
+     * The exceptions are left to bubble out and can be caught in the Models (by catching ErpExceptionInterface)
      * @param string $method
      * @param string $path
      * @param string|null $body
      * @return object
-     * @throws BillyDkException
+     * @throws ErpExceptionInterface
      */
-    protected function request(string $method, string $path, ?array $body = null): object
+    protected function request(string $method, string $path, ?array $body = null): \stdClass
     {
         self::validate_api_method($method);
         self::validate_api_path($path);
         //TODO a validation for single / in the path can be added for GET method
 
-        $curl = curl_init(self::API_URL . $path);
+        $url = self::API_URL . $path;
+        $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
 
@@ -258,20 +318,25 @@ class BillyDk implements ErpInterface
 
         // Execute request
         $res = curl_exec($curl);
+        if ($res === false) {
+            $message = sprintf('%1$s to %2$s failed with error: %3$s.', $method, $url, curl_error($curl));
+        }
         $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $body = json_decode($res);
 
-        if ($http_code >= 400) {
-            $message = sprintf(
-                '%1$s: request %2$s : %2$s failed with HTTP code %4$s. Error: %5$s',
-                __CLASS__,
-                $method,
-                $path,
-                $http_code,
-                $body->errorMessage
-            );
-            throw new BillyDkException($message);
-        }
+        //lets not catch any errors here and let them bubble to the methods of the class - they will handle these
+//        if ($http_code >= 400) {
+//            $message = sprintf(
+//                '%1$s: request %2$s : %2$s failed with HTTP code %4$s. Error: %5$s',
+//                __CLASS__,
+//                $method,
+//                $path,
+//                $http_code,
+//                $body->errorMessage
+//            );
+//            throw new BillyDkException($message);
+//        }
+
 
         return $body;
 
