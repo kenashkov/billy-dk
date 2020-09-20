@@ -40,6 +40,11 @@ class BillyDk implements ErpInterface
     ];
 
     /**
+     * A page may have a maximum of X elements
+     */
+    public const MAX_PAGE_SIZE = 1000;
+
+    /**
      * Must be provided to the constructor.
      * @var string
      */
@@ -110,9 +115,52 @@ class BillyDk implements ErpInterface
         $Response = $this->request($method, $path );
     }
 
-    public function get_products(): array
+    /**
+     * @param int $page
+     * @param int $page_size
+     * @return ProductInterface[] (in fact BillyDk\ProductInterface[] is returned which is a covariant)
+     * @throws BillyDkException
+     */
+    public function get_products(int $page = 1, int $page_size = 1000): array
     {
+        if ($page < 1) {
+            throw new \InvalidArgumentException(sprintf('The page must be a positive number.'));
+        }
+        if ($page_size < 1) {
+            throw new \InvalidArgumentException(sprintf('The page size must be a positive number.'));
+        }
+        if ($page_size > self::MAX_PAGE_SIZE) {
+            throw new \InvalidArgumentException(sprintf('A page may have a maximum %1$s elements.', self::MAX_PAGE_SIZE));
+        }
 
+        $Response = $this->request('GET', "/products?page={$page}&pageSize={$page_size}");
+print_r($Response);
+        $ret = [];
+        //optimization for Swoole - this will persist between the requests
+        static $params = [];
+        if (!$params) {
+            $params = (new \ReflectionMethod(Product::class, '__construct'))->getParameters();
+        }
+        foreach ($Response->products as $Product) {
+//            $ret[] = new Product(
+//                $Product->id,
+//                $Product->organizationId,
+//                $Product->name,
+//                $Product->description,
+//                $Product->accountId,
+//                $Product->productNo,
+//                $Product->suppliersProductNo,
+//                $Product->salesTaxRulesetId,
+//                $Product->isArchived,
+//            );
+            //a more flexible way
+            $constr_args = [];
+            foreach ($params as $RParam ) {
+                $constr_args[] = $Product->{$RParam->getName()};
+            }
+            $ret[] = new Product(...$constr_args);
+        }
+        return $ret;
     }
 
     /**

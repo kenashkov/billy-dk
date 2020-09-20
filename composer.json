@@ -15,8 +15,7 @@
     ],
     "require": {
         "php": ">=7.2.0",
-        "azonmedia/components": "dev-master",
-        "composer/composer": "^1.9"
+        "kenashkov/erp-api": "dev-master"
     },
     "autoload": {
         "psr-4": {

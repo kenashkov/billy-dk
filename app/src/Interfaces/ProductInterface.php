@@ -12,7 +12,7 @@ use Kenashkov\BillyDk\Traits\ProductTrait;
  *
  * Represents a product that can be added to Billy.dk
  *
- * @example data
+ * @example data for single product
  * {
  * "id": "McuTyKwkQDq86ICyGT4NXA",
  * "organizationId": "cwNMzNn1TOWhrYwyb6jdfA",
@@ -35,6 +35,8 @@ use Kenashkov\BillyDk\Traits\ProductTrait;
  * Individual methods for each property as provided instead of a single method retreiving all the properties for a more
  * formal validation and descriptive purpose.
  */
+
+
 interface ProductInterface extends \Kenashkov\ErpApi\Interfaces\ProductInterface
 {
 
