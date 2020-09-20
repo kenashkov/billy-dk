@@ -20,7 +20,7 @@ trait ProductTrait
      *
      * @return array
      */
-    public function get_billy_product_formatted_array(): array
+    public function get_erp_product_formatted_array(): array
     {
         if (!$this instanceof ProductInterface) {
             $message = sprintf(

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Kenashkov\BillyDk;
 
 use Kenashkov\BillyDk\Exceptions\BillyDkException;
-use Kenashkov\BillyDk\Interfaces\ProductInterface;
+use Kenashkov\ErpApi\Interfaces\ErpInterface;
+use Kenashkov\ErpApi\Interfaces\ProductInterface;
 
 /**
  * Class BillyDk
@@ -15,7 +16,7 @@ use Kenashkov\BillyDk\Interfaces\ProductInterface;
  * @link https://www.billy.dk/api/
  *
  */
-class BillyDk
+class BillyDk implements ErpInterface
 {
 
     public const API_URL = 'https://api.billysbilling.com/v2';
@@ -82,14 +83,16 @@ class BillyDk
     /**
      * Used for both updategin existing products and creating new ones
      * @param ProductInterface $Product
-     * @return \stdClass Parsed json response
+     * @param stdClass The complete response if needed.
+     * @return string The ERP ID ofthe created/updated object (this is needed for the newly created records)
      */
-    public function update_product(ProductInterface $Product): \stdClass
+    public function update_product(ProductInterface $Product, ?\stdClass &$Response = NULL): string
     {
-        $product_billy_id = $Product->get_billy_id();
+        $product_billy_id = $Product->get_erp_id();
         $method = $product_billy_id ? 'PUT' : 'POST';
         $path = $product_billy_id ? '/products/'.$product_billy_id : '/products';
-        $ret = $this->request($method, $path, ['product' => $Product->get_billy_product_formatted_array() ] );
+        $Response = $this->request($method, $path, ['product' => $Product->get_erp_product_formatted_array() ] );
+        $ret = $Response->products[0]->id;
         return $ret;
     }
 
@@ -99,13 +102,12 @@ class BillyDk
      * @return \stdClass Parsed json response
      * @throws BillyDkException
      */
-    public function delete_product(ProductInterface $Product): \stdClass
+    public function delete_product(ProductInterface $Product, ?\stdClass &$Response = NULL): void
     {
-        $product_billy_id = $Product->get_billy_id();
+        $product_billy_id = $Product->get_erp_id();
         $method = 'DELETE';
         $path = '/products/'.$product_billy_id;
-        $ret = $this->request($method, $path );
-        return $ret;
+        $Response = $this->request($method, $path );
     }
 
     public function get_products(): array
@@ -118,7 +120,7 @@ class BillyDk
      * @param string $method
      * @throws \InvalidArgumentException
      */
-    public static function validate_api_method(string $method): void
+    protected static function validate_api_method(string $method): void
     {
         if (!$method) {
             throw new \InvalidArgumentException(sprintf('No method is provided.'));
@@ -143,7 +145,7 @@ class BillyDk
      * @param string $path The path may also contain query arguments
      * @throws \InvalidArgumentException
      */
-    public static function validate_api_path(string $path): void
+    protected static function validate_api_path(string $path): void
     {
         if (!$path) {
             throw new \InvalidArgumentException(sprintf('No path is provided.'));
@@ -185,7 +187,7 @@ class BillyDk
      * @return object
      * @throws BillyDkException
      */
-    public function request(string $method, string $path, ?array $body = null): object
+    protected function request(string $method, string $path, ?array $body = null): object
     {
         self::validate_api_method($method);
         self::validate_api_path($path);
