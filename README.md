@@ -1,9 +1,10 @@
-# Application server monitor
+# Billy-dk
 
-Provides statistics and management for Swoole server and functions related to Guzaba 2. Allows a controller to be executed on each and every worker.
+Provides integration with [Billy.dk](https://www.billy.dk/api/) ERP system. Conforms to [kenashkov/erp-api](https://github.com/kenashkov/erp-api).
 
-## Installation
-
+To install:
 ```
-composer require guzaba-platform/app-server-monitor
+$ composer require kenahskov/billy-dk
 ```
+
+Test package is also [available](https://github.com/kenashkov/billy-dk-test).
